@@ -122,23 +122,35 @@ class WeekData:
 
     @property
     def pending_days(self) -> list:
-        """Non-holiday days that are today or in the future (Rome time) — excluded from target."""
+        """Non-holiday days not yet counted in the target:
+        future dates, plus today if its chart value is still 0 (mid-session)."""
         today = _today()
-        return [d for d in self.days if not d.is_holiday and d.date >= today]
+        return [
+            d for d in self.days
+            if not d.is_holiday and d.date >= today
+            and not (d.date == today and d.minutes_done > 0)
+        ]
 
     @property
     def is_in_progress(self) -> bool:
-        """True if the week contains today or future dates."""
-        today = _today()
-        return any(d.date >= today for d in self.days)
+        """True if the week contains any pending days."""
+        return len(self.pending_days) > 0
 
     @property
     def target(self) -> int:
-        """Expected hours: only counts non-holiday days strictly before today (Rome time).
-        Today and future dates are excluded — their hours may not be complete yet."""
+        """Expected hours for days that are definitively complete (Rome time):
+        - All past non-holiday working days
+        - Today, if its chart value is non-zero (session already finished)
+        Today with 0:00 and all future dates are excluded — hours aren't final yet."""
         today = _today()
-        past_working = sum(1 for d in self.days if not d.is_holiday and d.date < today)
-        return past_working * DAY_MINUTES
+        counted = sum(
+            1 for d in self.days
+            if not d.is_holiday and (
+                d.date < today or
+                (d.date == today and d.minutes_done > 0)
+            )
+        )
+        return counted * DAY_MINUTES
 
     @property
     def missing(self) -> int:
