@@ -4,8 +4,6 @@ A script for **Apple Developer Academy Napoli** students to crunch their AirBadg
 
 Take weekly screenshots from the AirBadge app, point the script at the folder, and get a full breakdown in seconds.
 
-![Output](docs/screenshot_output.jpg)
-
 ---
 
 ## What it does
@@ -52,7 +50,11 @@ python3 /path/to/Process_AirBadge_Screenshots.py /path/to/your/folder
 
 ### 4. Read the output
 
-You'll see a week-by-week table and an overall total. If any weeks are missing from your folder, a warning panel tells you exactly which ones to add.
+You'll see a week-by-week table and an overall total.
+
+![Output](docs/screenshot_total_view.jpg)
+
+If any weeks are missing from your folder, a warning panel tells you exactly which ones to add.
 
 ![Missing periods warning](docs/screenshot_missing.jpg)
 
