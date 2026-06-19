@@ -4,6 +4,8 @@ A script for **Apple Developer Academy Napoli** students to crunch their AirBadg
 
 Take weekly screenshots from the AirBadge app, point the script at the folder, and get a full breakdown in seconds.
 
+![Output](docs/screenshot_output.jpg)
+
 ---
 
 ## What it does
