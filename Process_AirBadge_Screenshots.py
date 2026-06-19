@@ -7,8 +7,15 @@ Hardware-accelerated via Apple Vision Neural Engine on Apple Silicon
 import sys
 import re
 from pathlib import Path
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from dataclasses import dataclass
+from zoneinfo import ZoneInfo
+
+ROME = ZoneInfo("Europe/Rome")
+
+def _today() -> date:
+    """Current date in Rome time (CET/CEST) — always used for future-day cutoff."""
+    return datetime.now(ROME).date()
 
 
 # ── Auto-install dependencies ─────────────────────────────────────────────────
@@ -114,8 +121,24 @@ class WeekData:
         return sum(1 for d in self.days if not d.is_holiday)
 
     @property
+    def pending_days(self) -> list:
+        """Non-holiday days that are today or in the future (Rome time) — excluded from target."""
+        today = _today()
+        return [d for d in self.days if not d.is_holiday and d.date >= today]
+
+    @property
+    def is_in_progress(self) -> bool:
+        """True if the week contains today or future dates."""
+        today = _today()
+        return any(d.date >= today for d in self.days)
+
+    @property
     def target(self) -> int:
-        return self.working_days * DAY_MINUTES
+        """Expected hours: only counts non-holiday days strictly before today (Rome time).
+        Today and future dates are excluded — their hours may not be complete yet."""
+        today = _today()
+        past_working = sum(1 for d in self.days if not d.is_holiday and d.date < today)
+        return past_working * DAY_MINUTES
 
     @property
     def missing(self) -> int:
@@ -428,6 +451,7 @@ def main():
     tbl.add_column("Working Days", style="dim white",  justify="center", min_width=13)
 
     grand_done = grand_miss = 0
+    has_in_progress = False
 
     for w in weeks:
         grand_done += w.total_done
@@ -440,6 +464,18 @@ def main():
                 "[dim]— holiday[/dim]",
                 "[dim]0 / 5[/dim]",
             )
+        elif w.is_in_progress:
+            has_in_progress = True
+            n_pending = len(w.pending_days)
+            n_counted = w.working_days - n_pending
+            done_style = "green" if w.missing == 0 else "yellow"
+            tbl.add_row(
+                f"{w.label}  [dim cyan]↻ in progress[/dim cyan]",
+                f"[{done_style}]{hhmm(w.total_done)}[/{done_style}]",
+                f"[red]{hhmm(w.missing)}[/red]  [dim](past days only)[/dim]"
+                    if w.missing else "[dim cyan]—[/dim cyan]",
+                f"[dim]{n_counted} counted · {n_pending} pending[/dim]",
+            )
         else:
             done_style = "green" if w.missing == 0 else "yellow"
             tbl.add_row(
@@ -450,6 +486,13 @@ def main():
             )
 
     console.print(tbl)
+
+    if has_in_progress:
+        console.print(
+            "[dim cyan]  ↻ in progress[/dim cyan]"
+            "[dim]  —  today and future dates are not counted towards missing time"
+            " (Rome time, CET/CEST)[/dim]"
+        )
 
     # ── Totals ────────────────────────────────────────────────────────────────
     console.print()

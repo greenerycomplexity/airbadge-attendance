@@ -69,6 +69,14 @@ If any weeks are missing from your folder, a warning panel tells you exactly whi
 - You can keep adding new screenshots to the same folder and re-run the script at any time.
 - Works on any Apple Silicon Mac (M1, M2, M3, M4, and all variants).
 
+### Current week behaviour
+
+If a screenshot includes today or future dates, that week is marked **↻ in progress** in the table. Those days are **not counted towards missing time** — AirBadge shows 0:00 for any day where you haven't badged out yet, so including them would wrongly inflate your missing hours.
+
+Any hours already recorded for today still count towards your time done. The script always uses **Rome time (CET/CEST)** to determine what's in the past.
+
+> **Note:** if you complete today's session and re-run the script, today's hours will appear in *Time Done* but today's target won't be added to *Time Missing* until tomorrow. This means a completed day slightly reduces your overall deficit rather than netting to zero — this is intentional and always in your favour.
+
 ---
 
 ## How it works (for the curious)
